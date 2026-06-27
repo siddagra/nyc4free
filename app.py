@@ -235,6 +235,9 @@ def scrape_events(chosen_iso: str, supplied_html: str = "") -> pd.DataFrame:
 
 
 st.set_page_config(page_title="NYC Free Today", page_icon="🗽", layout="wide")
+if "event_card_mode" not in st.session_state:
+    st.session_state.event_card_mode = "responsive"
+
 st.markdown("""
 <style>
   .block-container {max-width: 1280px; padding-top: 1.5rem}
@@ -247,10 +250,6 @@ st.markdown("""
   .st-key-filter_bar [data-testid="stWidgetLabel"] p{white-space:nowrap}
   @media(min-width:769px){
     [data-testid="stMain"] [data-testid="stExpander"] summary p{font-size:1.2rem}
-    [data-testid="stMain"] [data-testid="stExpander"] details:not([open]) > :not(summary){display:block!important}
-    [data-testid="stMain"] [data-testid="stExpander"] details:not([open]) [data-testid="stExpanderDetails"]{display:block!important}
-    [data-testid="stMain"] [data-testid="stExpander"] summary svg{display:none}
-    [data-testid="stMain"] [data-testid="stExpander"] summary{cursor:default}
   }
   @media(max-width:768px){
     .block-container{padding:1rem}
@@ -261,9 +260,20 @@ st.markdown("""
     [data-testid="stMain"] [data-testid="stExpander"] img{max-height:220px}
     .st-key-filter_bar [data-testid="stHorizontalBlock"]{flex-direction:column;gap:.35rem}
     .st-key-filter_bar [data-testid="column"]{width:100%!important;flex:1 1 100%!important}
+    .st-key-actions_bar [data-testid="stHorizontalBlock"]{flex-direction:column;gap:.35rem}
+    .st-key-actions_bar [data-testid="column"]{width:100%!important;flex:1 1 100%!important}
   }
 </style>
 """, unsafe_allow_html=True)
+if st.session_state.event_card_mode == "responsive":
+    st.markdown("""
+    <style>@media(min-width:769px){
+      [data-testid="stMain"] [data-testid="stExpander"] details:not([open]) > :not(summary){display:block!important}
+      [data-testid="stMain"] [data-testid="stExpander"] details:not([open]) [data-testid="stExpanderDetails"]{display:block!important}
+      [data-testid="stMain"] [data-testid="stExpander"] summary svg{display:none}
+      [data-testid="stMain"] [data-testid="stExpander"] summary{cursor:default}
+    }</style>
+    """, unsafe_allow_html=True)
 
 st.title("🗽 NYC Free Events")
 st.caption("Full event details from NYC for FREE, filtered to the day you choose.")
@@ -305,8 +315,22 @@ st.caption(f"{len(filtered)} events · {int(filtered['rsvp'].sum())} may require
 download = filtered.copy()
 for column in ("start", "end"):
     download[column] = download[column].apply(lambda x: x.isoformat() if pd.notna(x) and x else "")
-st.download_button("Download this list as CSV", download.to_csv(index=False).encode("utf-8"),
-                   file_name=f"nyc-free-{chosen_day.isoformat()}.csv", mime="text/csv")
+with st.container(key="actions_bar"):
+    download_col, expand_col, collapse_col, _ = st.columns([2.2, 1, 1, 3.8], vertical_alignment="bottom")
+    with download_col:
+        st.download_button("Download this list as CSV", download.to_csv(index=False).encode("utf-8"),
+                           file_name=f"nyc-free-{chosen_day.isoformat()}.csv", mime="text/csv",
+                           use_container_width=True)
+    with expand_col:
+        if st.button("Expand all", use_container_width=True):
+            st.session_state.event_card_mode = "expanded"
+            st.rerun()
+    with collapse_col:
+        if st.button("Collapse all", use_container_width=True):
+            st.session_state.event_card_mode = "collapsed"
+            st.rerun()
+
+expand_cards = st.session_state.event_card_mode == "expanded"
 
 for _, event in filtered.sort_values("start", na_position="last").iterrows():
     when = "Time not listed"
@@ -314,7 +338,7 @@ for _, event in filtered.sort_values("start", na_position="last").iterrows():
         when = event["start"].strftime("%I:%M %p").lstrip("0")
         if event["end"] and event["end"].date() > event["start"].date():
             when += f" · through {event['end'].strftime('%b %-d') if __import__('os').name != 'nt' else event['end'].strftime('%b %d').replace(' 0', ' ')}"
-    with st.expander(f"{event['title']}  ·  {when}", expanded=False):
+    with st.expander(f"{event['title']}  ·  {when}", expanded=expand_cards):
         text_col, image_col = st.columns([5, 2], vertical_alignment="top")
         with text_col:
             st.caption(" · ".join(x for x in (event["categories"], "RSVP/check details" if event["rsvp"] else "") if x))
