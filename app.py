@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import re
 import time
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from urllib.parse import quote, urljoin, urlparse
 
 import pandas as pd
@@ -253,6 +253,8 @@ st.markdown("""
   }
   .st-key-filter_bar [data-testid="stWidgetLabel"] p{white-space:nowrap}
   .st-key-filter_bar button{white-space:nowrap}
+  .mobile-date-label{display:none}
+  .st-key-day_nav [data-testid="stMarkdownContainer"] p{text-align:center;font-weight:700;font-size:1.05rem;margin:.45rem 0}
   @media(min-width:769px){
     [data-testid="stMain"] [data-testid="stExpander"] summary p{font-size:1.2rem}
   }
@@ -267,11 +269,14 @@ st.markdown("""
     .st-key-filter_bar [data-testid="column"]{width:100%!important;flex:1 1 100%!important}
     .st-key-actions_bar [data-testid="stHorizontalBlock"]{flex-direction:row;flex-wrap:wrap;gap:.35rem}
     .st-key-actions_bar [data-testid="column"]{width:auto!important}
-    .st-key-actions_bar [data-testid="column"]:nth-child(1){flex:1 1 100%!important}
+    .st-key-actions_bar [data-testid="column"]:nth-child(1){flex:0 0 100%!important}
     .st-key-actions_bar [data-testid="column"]:nth-child(2),
-    .st-key-actions_bar [data-testid="column"]:nth-child(3){flex:1 1 calc(50% - .2rem)!important}
+    .st-key-actions_bar [data-testid="column"]:nth-child(3){flex:0 0 calc(50% - .175rem)!important}
     .st-key-actions_bar [data-testid="column"]:nth-child(4){display:none}
-    .st-key-actions_bar [data-testid="stDownloadButton"] button{width:auto;padding-left:.75rem;padding-right:.75rem}
+    .st-key-actions_bar [data-testid="stDownloadButton"] button{width:100%;padding-left:.75rem;padding-right:.75rem}
+    .desktop-date-label{display:none}
+    .mobile-date-label{display:inline}
+    .st-key-day_nav [data-testid="stMarkdownContainer"] p{font-size:1rem;margin:.45rem 0}
   }
 </style>
 """, unsafe_allow_html=True)
@@ -288,10 +293,30 @@ if st.session_state.event_card_mode == "responsive":
 st.title("🗽 NYC Free Events")
 st.caption("Full event details from NYC for FREE, filtered to the day you choose.")
 
+if "chosen_date" not in st.session_state:
+    st.session_state.chosen_date = date.today()
+
+with st.container(key="day_nav"):
+    previous_col, current_col, next_col = st.columns([1, 5, 1], vertical_alignment="center")
+    with previous_col:
+        if st.button("←", help="Previous day", use_container_width=True):
+            st.session_state.chosen_date -= timedelta(days=1)
+            st.rerun()
+    with current_col:
+        current_date = st.session_state.chosen_date
+        desktop_date = current_date.strftime("%A, %B %d, %Y").replace(" 0", " ")
+        mobile_date = current_date.strftime("%a, %b %d").replace(" 0", " ")
+        st.markdown(f'<span class="desktop-date-label">{desktop_date}</span>'
+                    f'<span class="mobile-date-label">{mobile_date}</span>', unsafe_allow_html=True)
+    with next_col:
+        if st.button("→", help="Next day", use_container_width=True):
+            st.session_state.chosen_date += timedelta(days=1)
+            st.rerun()
+
 with st.container(key="filter_bar"):
-    date_col, refresh_col, search_col, category_col = st.columns([1.2, .9, 3.1, 2], vertical_alignment="bottom")
+    date_col, refresh_col, search_col, category_col = st.columns([.85, .8, 4.6, 1.5], vertical_alignment="bottom")
     with date_col:
-        chosen_day = st.date_input("📅 Choose date", value=date.today())
+        chosen_day = st.date_input("📅 Date", key="chosen_date")
     with refresh_col:
         if st.button("Refresh", use_container_width=True, icon="🔄"):
             st.cache_data.clear()
@@ -330,7 +355,7 @@ with st.container(key="actions_bar"):
     with download_col:
         st.download_button("Download this list as CSV", download.to_csv(index=False).encode("utf-8"),
                            file_name=f"nyc-free-{chosen_day.isoformat()}.csv", mime="text/csv",
-                           use_container_width=False)
+                           use_container_width=False, icon="📄")
     with expand_col:
         if st.button("Expand all", use_container_width=True):
             st.session_state.event_card_mode = "expanded"
