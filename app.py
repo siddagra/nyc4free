@@ -261,8 +261,13 @@ st.markdown("""
     [data-testid="stMain"] [data-testid="stExpander"] img{max-height:220px}
     .st-key-filter_bar [data-testid="stHorizontalBlock"]{flex-direction:column;gap:.35rem}
     .st-key-filter_bar [data-testid="column"]{width:100%!important;flex:1 1 100%!important}
-    .st-key-actions_bar [data-testid="stHorizontalBlock"]{flex-direction:column;gap:.35rem}
-    .st-key-actions_bar [data-testid="column"]{width:100%!important;flex:1 1 100%!important}
+    .st-key-actions_bar [data-testid="stHorizontalBlock"]{flex-direction:row;flex-wrap:wrap;gap:.35rem}
+    .st-key-actions_bar [data-testid="column"]{width:auto!important}
+    .st-key-actions_bar [data-testid="column"]:nth-child(1){flex:1 1 100%!important}
+    .st-key-actions_bar [data-testid="column"]:nth-child(2),
+    .st-key-actions_bar [data-testid="column"]:nth-child(3){flex:1 1 calc(50% - .2rem)!important}
+    .st-key-actions_bar [data-testid="column"]:nth-child(4){display:none}
+    .st-key-actions_bar [data-testid="stDownloadButton"] button{width:auto;padding-left:.75rem;padding-right:.75rem}
   }
 </style>
 """, unsafe_allow_html=True)
@@ -317,11 +322,11 @@ download = filtered.copy()
 for column in ("start", "end"):
     download[column] = download[column].apply(lambda x: x.isoformat() if pd.notna(x) and x else "")
 with st.container(key="actions_bar"):
-    download_col, expand_col, collapse_col, _ = st.columns([2.2, 1, 1, 3.8], vertical_alignment="bottom")
+    download_col, expand_col, collapse_col, _ = st.columns([1.7, 1, 1, 4.3], vertical_alignment="bottom")
     with download_col:
         st.download_button("Download this list as CSV", download.to_csv(index=False).encode("utf-8"),
                            file_name=f"nyc-free-{chosen_day.isoformat()}.csv", mime="text/csv",
-                           use_container_width=True)
+                           use_container_width=False)
     with expand_col:
         if st.button("Expand all", use_container_width=True):
             st.session_state.event_card_mode = "expanded"
