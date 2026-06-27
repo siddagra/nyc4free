@@ -238,24 +238,26 @@ st.set_page_config(page_title="NYC Free Today", page_icon="🗽", layout="wide")
 st.markdown("""
 <style>
   .block-container {max-width: 1280px; padding-top: 1.5rem}
-  section.main [data-testid="stExpander"]{margin-bottom:.8rem}
-  section.main [data-testid="stExpander"] details{border-radius:14px;border-color:rgba(128,128,128,.35)}
-  section.main [data-testid="stExpander"] summary p{font-size:1.08rem;font-weight:700;line-height:1.35}
-  section.main [data-testid="stExpander"] img{
+  [data-testid="stMain"] [data-testid="stExpander"]{margin-bottom:.8rem}
+  [data-testid="stMain"] [data-testid="stExpander"] details{border-radius:14px;border-color:rgba(128,128,128,.35)}
+  [data-testid="stMain"] [data-testid="stExpander"] summary p{font-weight:700;line-height:1.35}
+  [data-testid="stMain"] [data-testid="stExpander"] img{
     max-height:260px;object-fit:cover;border-radius:12px
   }
-  @media(min-width:641px){
-    section.main [data-testid="stExpander"] details:not([open]) > :not(summary){display:block!important}
-    section.main [data-testid="stExpander"] summary svg{display:none}
-    section.main [data-testid="stExpander"] summary{cursor:default}
+  @media(min-width:769px){
+    [data-testid="stMain"] [data-testid="stExpander"] summary p{font-size:1.2rem}
+    [data-testid="stMain"] [data-testid="stExpander"] details:not([open]) > :not(summary){display:block!important}
+    [data-testid="stMain"] [data-testid="stExpander"] details:not([open]) [data-testid="stExpanderDetails"]{display:block!important}
+    [data-testid="stMain"] [data-testid="stExpander"] summary svg{display:none}
+    [data-testid="stMain"] [data-testid="stExpander"] summary{cursor:default}
   }
-  @media(max-width:640px){
+  @media(max-width:768px){
     .block-container{padding:1rem}
     .stButton button{width:100%}
-    section.main [data-testid="stExpander"] summary p{font-size:.94rem;line-height:1.3}
-    section.main [data-testid="stExpander"] [data-testid="stHorizontalBlock"]{flex-direction:column;gap:.5rem}
-    section.main [data-testid="stExpander"] [data-testid="column"]{width:100%!important;flex:1 1 100%!important}
-    section.main [data-testid="stExpander"] img{max-height:220px}
+    [data-testid="stMain"] [data-testid="stExpander"] summary p{font-size:1rem;font-weight:700;line-height:1.35}
+    [data-testid="stMain"] [data-testid="stExpander"] [data-testid="stHorizontalBlock"]{flex-direction:column;gap:.5rem}
+    [data-testid="stMain"] [data-testid="stExpander"] [data-testid="column"]{width:100%!important;flex:1 1 100%!important}
+    [data-testid="stMain"] [data-testid="stExpander"] img{max-height:220px}
   }
 </style>
 """, unsafe_allow_html=True)
