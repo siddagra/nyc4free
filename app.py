@@ -263,17 +263,43 @@ st.markdown("""
     .stButton button{width:100%}
     [data-testid="stMain"] [data-testid="stExpander"] summary p{font-size:1rem;font-weight:700;line-height:1.35}
     [data-testid="stMain"] [data-testid="stExpander"] [data-testid="stHorizontalBlock"]{flex-direction:column;gap:.5rem}
-    [data-testid="stMain"] [data-testid="stExpander"] [data-testid="column"]{width:100%!important;flex:1 1 100%!important}
+    [data-testid="stMain"] [data-testid="stExpander"] [data-testid="stColumn"]{width:100%!important;flex:1 1 100%!important}
     [data-testid="stMain"] [data-testid="stExpander"] img{max-height:220px}
-    .st-key-filter_bar [data-testid="stHorizontalBlock"]{flex-direction:column;gap:.35rem}
-    .st-key-filter_bar [data-testid="column"]{width:100%!important;flex:1 1 100%!important}
+    .st-key-day_nav [data-testid="stHorizontalBlock"]{flex-direction:row!important;flex-wrap:nowrap;gap:.4rem}
+    .st-key-day_nav [data-testid="stColumn"]{min-width:0!important}
+    .st-key-day_nav [data-testid="stColumn"]:nth-child(1),
+    .st-key-day_nav [data-testid="stColumn"]:nth-child(3){width:46px!important;min-width:46px!important;max-width:46px!important;flex:0 0 46px!important}
+    .st-key-day_nav [data-testid="stColumn"]:nth-child(2){width:auto!important;min-width:0!important;max-width:none!important;flex:1 1 auto!important}
+    .st-key-filter_bar [data-testid="stHorizontalBlock"]{flex-direction:row!important;flex-wrap:wrap;gap:.4rem}
+    .st-key-filter_bar [data-testid="stColumn"]{width:auto!important;min-width:0!important}
+    .st-key-filter_bar [data-testid="stColumn"]:nth-child(1),
+    .st-key-filter_bar [data-testid="stColumn"]:nth-child(2),
+    .st-key-filter_bar [data-testid="stColumn"]:nth-child(4){flex:0 0 48px!important;width:48px!important;max-width:48px!important}
+    .st-key-filter_bar [data-testid="stColumn"]:nth-child(3){order:2;flex:1 1 100%!important;width:100%!important;max-width:100%!important}
+    .st-key-filter_bar [data-testid="stColumn"]:nth-child(1) [data-testid="stWidgetLabel"],
+    .st-key-filter_bar [data-testid="stColumn"]:nth-child(4) [data-testid="stWidgetLabel"]{display:none}
+    .st-key-filter_bar [data-testid="stColumn"]:nth-child(1){position:relative}
+    .st-key-filter_bar [data-testid="stColumn"]:nth-child(1)::after{
+      content:'📅';position:absolute;left:0;right:0;bottom:.72rem;text-align:center;
+      font-size:1rem;line-height:1;pointer-events:none
+    }
+    .st-key-filter_bar [data-testid="stColumn"]:nth-child(1) input{font-size:0!important;color:transparent!important;padding-left:.35rem;padding-right:.35rem}
+    .st-key-filter_bar [data-testid="stColumn"]:nth-child(2) button p{display:none}
+    .st-key-filter_bar [data-testid="stColumn"]:nth-child(4){position:relative}
+    .st-key-filter_bar [data-testid="stColumn"]:nth-child(4)::after{
+      content:'⋯';position:absolute;left:0;right:0;bottom:.62rem;text-align:center;
+      font-size:1.45rem;line-height:1;pointer-events:none
+    }
+    .st-key-filter_bar [data-testid="stColumn"]:nth-child(4) [data-baseweb="select"] *{color:transparent!important}
     .st-key-actions_bar [data-testid="stHorizontalBlock"]{flex-direction:row;flex-wrap:wrap;gap:.35rem}
-    .st-key-actions_bar [data-testid="column"]{width:auto!important}
-    .st-key-actions_bar [data-testid="column"]:nth-child(1){flex:0 0 100%!important}
-    .st-key-actions_bar [data-testid="column"]:nth-child(2),
-    .st-key-actions_bar [data-testid="column"]:nth-child(3){flex:0 0 calc(50% - .175rem)!important}
-    .st-key-actions_bar [data-testid="column"]:nth-child(4){display:none}
+    .st-key-actions_bar [data-testid="stColumn"]{width:auto!important;min-width:0!important}
+    .st-key-actions_bar [data-testid="stColumn"]:nth-child(1){flex:0 0 100%!important;max-width:100%!important}
+    .st-key-actions_bar [data-testid="stColumn"]:nth-child(2),
+    .st-key-actions_bar [data-testid="stColumn"]:nth-child(3){flex:0 0 calc(50% - .175rem)!important;max-width:calc(50% - .175rem)!important}
+    .st-key-actions_bar [data-testid="stColumn"]:nth-child(4){display:none}
     .st-key-actions_bar [data-testid="stDownloadButton"] button{width:100%;padding-left:.75rem;padding-right:.75rem}
+    .st-key-actions_bar [data-testid="stColumn"]:nth-child(2) button p,
+    .st-key-actions_bar [data-testid="stColumn"]:nth-child(3) button p{display:none}
     .desktop-date-label{display:none}
     .mobile-date-label{display:inline}
     .st-key-day_nav [data-testid="stMarkdownContainer"] p{font-size:1rem;margin:.45rem 0}
@@ -357,11 +383,11 @@ with st.container(key="actions_bar"):
                            file_name=f"nyc-free-{chosen_day.isoformat()}.csv", mime="text/csv",
                            use_container_width=False, icon="📄")
     with expand_col:
-        if st.button("Expand all", use_container_width=True):
+        if st.button("Expand all", use_container_width=True, icon=":material/unfold_more:", help="Expand all events"):
             st.session_state.event_card_mode = "expanded"
             st.rerun()
     with collapse_col:
-        if st.button("Collapse all", use_container_width=True):
+        if st.button("Collapse all", use_container_width=True, icon=":material/unfold_less:", help="Collapse all events"):
             st.session_state.event_card_mode = "collapsed"
             st.rerun()
 
