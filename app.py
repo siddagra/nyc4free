@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import html
 import json
 import re
 import time
@@ -239,20 +238,24 @@ st.set_page_config(page_title="NYC Free Today", page_icon="🗽", layout="wide")
 st.markdown("""
 <style>
   .block-container {max-width: 1280px; padding-top: 1.5rem}
-  [data-testid="stMetric"] {background:#f6f7f9;border-radius:14px;padding:10px 14px}
-  .event-card-marker{display:none}
-  [data-testid="stVerticalBlockBorderWrapper"]:has(.event-card-marker){
-    margin-bottom:.8rem;border-radius:14px;border-color:rgba(128,128,128,.35)
-  }
-  [data-testid="stVerticalBlockBorderWrapper"]:has(.event-card-marker) img{
+  section.main [data-testid="stExpander"]{margin-bottom:.8rem}
+  section.main [data-testid="stExpander"] details{border-radius:14px;border-color:rgba(128,128,128,.35)}
+  section.main [data-testid="stExpander"] summary p{font-size:1.08rem;font-weight:700;line-height:1.35}
+  section.main [data-testid="stExpander"] img{
     max-height:260px;object-fit:cover;border-radius:12px
+  }
+  @media(min-width:641px){
+    section.main [data-testid="stExpander"] details:not([open]) > :not(summary){display:block!important}
+    section.main [data-testid="stExpander"] summary svg{display:none}
+    section.main [data-testid="stExpander"] summary{cursor:default}
   }
   @media(max-width:640px){
     .block-container{padding:1rem}
     .stButton button{width:100%}
-    [data-testid="stVerticalBlockBorderWrapper"]:has(.event-card-marker) [data-testid="stHorizontalBlock"]{flex-direction:column;gap:.5rem}
-    [data-testid="stVerticalBlockBorderWrapper"]:has(.event-card-marker) [data-testid="column"]{width:100%!important;flex:1 1 100%!important}
-    [data-testid="stVerticalBlockBorderWrapper"]:has(.event-card-marker) img{max-height:220px}
+    section.main [data-testid="stExpander"] summary p{font-size:.94rem;line-height:1.3}
+    section.main [data-testid="stExpander"] [data-testid="stHorizontalBlock"]{flex-direction:column;gap:.5rem}
+    section.main [data-testid="stExpander"] [data-testid="column"]{width:100%!important;flex:1 1 100%!important}
+    section.main [data-testid="stExpander"] img{max-height:220px}
   }
 </style>
 """, unsafe_allow_html=True)
@@ -260,24 +263,17 @@ st.markdown("""
 st.title("🗽 NYC Free Events")
 st.caption("Full event details from NYC for FREE, filtered to the day you choose.")
 
-with st.sidebar:
-    st.header("Choose your day")
-    chosen_day = st.date_input("Date", value=date.today())
-    with st.expander("Advanced: use a saved list"):
-        uploaded = st.file_uploader("Optional saved events HTML", type=("html", "htm", "txt"),
-                                    help="Normally leave this blank—the dashboard fetches the live calendar automatically.")
-        pasted = st.text_area("Or paste event links / HTML", height=100)
-    if st.button("Refresh live data", use_container_width=True):
+date_col, refresh_col, _ = st.columns([2, 1, 5], vertical_alignment="bottom")
+with date_col:
+    chosen_day = st.date_input("📅 Choose date", value=date.today())
+with refresh_col:
+    if st.button("Refresh", use_container_width=True, icon="🔄"):
         st.cache_data.clear()
         st.rerun()
 
-supplied = uploaded.getvalue().decode("utf-8", errors="replace") if uploaded else pasted
-if supplied and "<" not in supplied:
-    supplied = "\n".join(f'<a href="{html.escape(line.strip())}"></a>' for line in supplied.splitlines() if line.strip())
-
 try:
     with st.spinner("Finding free things to do…"):
-        df = scrape_events(chosen_day.isoformat(), supplied)
+        df = scrape_events(chosen_day.isoformat())
 except requests.RequestException as exc:
     st.error(f"Could not reach NYC for FREE: {exc}")
     st.stop()
@@ -296,9 +292,7 @@ if query:
 if selected:
     filtered = filtered[filtered["categories"].apply(lambda value: any(x in value for x in selected))]
 
-left, right = st.columns(2)
-left.metric("Events", len(filtered))
-right.metric("RSVP may be needed", int(filtered["rsvp"].sum()))
+st.caption(f"{len(filtered)} events · {int(filtered['rsvp'].sum())} may require RSVP")
 
 download = filtered.copy()
 for column in ("start", "end"):
@@ -312,11 +306,9 @@ for _, event in filtered.sort_values("start", na_position="last").iterrows():
         when = event["start"].strftime("%I:%M %p").lstrip("0")
         if event["end"] and event["end"].date() > event["start"].date():
             when += f" · through {event['end'].strftime('%b %-d') if __import__('os').name != 'nt' else event['end'].strftime('%b %d').replace(' 0', ' ')}"
-    with st.container(border=True):
-        st.markdown('<span class="event-card-marker"></span>', unsafe_allow_html=True)
+    with st.expander(f"{event['title']}  ·  {when}", expanded=False):
         text_col, image_col = st.columns([5, 2], vertical_alignment="top")
         with text_col:
-            st.markdown(f"### {event['title']}")
             st.caption(" · ".join(x for x in (event["categories"], "RSVP/check details" if event["rsvp"] else "") if x))
             if event["description"]:
                 st.write(event["description"])
