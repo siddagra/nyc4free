@@ -243,6 +243,7 @@ st.markdown("""
   .block-container {max-width: 1280px; padding-top: 1.5rem}
   [data-testid="stMain"] [data-testid="stExpander"]{margin-bottom:.8rem}
   [data-testid="stMain"] [data-testid="stExpander"] details{border-radius:14px;border-color:rgba(128,128,128,.35)}
+  [data-testid="stMain"] [data-testid="stExpander"] summary{flex-direction:row-reverse;justify-content:space-between}
   [data-testid="stMain"] [data-testid="stExpander"] summary p{font-weight:700;line-height:1.35}
   [data-testid="stMain"] [data-testid="stExpander"] img{
     max-height:260px;object-fit:cover;border-radius:12px
