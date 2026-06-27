@@ -244,6 +244,7 @@ st.markdown("""
   [data-testid="stMain"] [data-testid="stExpander"] img{
     max-height:260px;object-fit:cover;border-radius:12px
   }
+  .st-key-filter_bar [data-testid="stWidgetLabel"] p{white-space:nowrap}
   @media(min-width:769px){
     [data-testid="stMain"] [data-testid="stExpander"] summary p{font-size:1.2rem}
     [data-testid="stMain"] [data-testid="stExpander"] details:not([open]) > :not(summary){display:block!important}
@@ -258,6 +259,8 @@ st.markdown("""
     [data-testid="stMain"] [data-testid="stExpander"] [data-testid="stHorizontalBlock"]{flex-direction:column;gap:.5rem}
     [data-testid="stMain"] [data-testid="stExpander"] [data-testid="column"]{width:100%!important;flex:1 1 100%!important}
     [data-testid="stMain"] [data-testid="stExpander"] img{max-height:220px}
+    .st-key-filter_bar [data-testid="stHorizontalBlock"]{flex-direction:column;gap:.35rem}
+    .st-key-filter_bar [data-testid="column"]{width:100%!important;flex:1 1 100%!important}
   }
 </style>
 """, unsafe_allow_html=True)
@@ -265,13 +268,14 @@ st.markdown("""
 st.title("🗽 NYC Free Events")
 st.caption("Full event details from NYC for FREE, filtered to the day you choose.")
 
-date_col, refresh_col, _ = st.columns([2, 1, 5], vertical_alignment="bottom")
-with date_col:
-    chosen_day = st.date_input("📅 Choose date", value=date.today())
-with refresh_col:
-    if st.button("Refresh", use_container_width=True, icon="🔄"):
-        st.cache_data.clear()
-        st.rerun()
+with st.container(key="filter_bar"):
+    date_col, refresh_col, search_col, category_col = st.columns([1.25, .7, 3.25, 2], vertical_alignment="bottom")
+    with date_col:
+        chosen_day = st.date_input("📅 Choose date", value=date.today())
+    with refresh_col:
+        if st.button("Refresh", use_container_width=True, icon="🔄"):
+            st.cache_data.clear()
+            st.rerun()
 
 try:
     with st.spinner("Finding free things to do…"):
@@ -284,9 +288,11 @@ if df.empty:
     st.info("No matching events were found. Try another date or paste/upload the original event list.")
     st.stop()
 
-query = st.text_input("Search title, description, or location", placeholder="Try: samples, yoga, Brooklyn…")
 available = sorted({x.strip() for values in df["categories"] for x in values.split(",")})
-selected = st.multiselect("Categories", available)
+with search_col:
+    query = st.text_input("Search", placeholder="Title, description, or location…")
+with category_col:
+    selected = st.multiselect("Categories", available)
 filtered = df.copy()
 if query:
     mask = filtered[["title", "description", "location"]].fillna("").agg(" ".join, axis=1).str.contains(query, case=False, regex=False)
