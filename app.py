@@ -236,32 +236,26 @@ def scrape_events(chosen_iso: str, supplied_html: str = "") -> pd.DataFrame:
 
 
 st.set_page_config(page_title="NYC Free Today", page_icon="🗽", layout="wide")
-if "event_card_mode" not in st.session_state:
-    st.session_state.event_card_mode = "responsive"
-
 st.markdown("""
 <style>
   .block-container {max-width: 1280px; padding-top: 1.5rem}
   [data-testid="stMetric"] {background:#f6f7f9;border-radius:14px;padding:10px 14px}
-  [data-testid="stExpander"] img {max-height:260px;object-fit:cover;border-radius:12px}
-  section.main [data-testid="stExpander"] summary p{font-size:1.08rem;font-weight:700;line-height:1.35}
-  section.main [data-testid="stExpander"]{margin-bottom:.45rem}
+  .event-card-marker{display:none}
+  [data-testid="stVerticalBlockBorderWrapper"]:has(.event-card-marker){
+    margin-bottom:.8rem;border-radius:14px;border-color:rgba(128,128,128,.35)
+  }
+  [data-testid="stVerticalBlockBorderWrapper"]:has(.event-card-marker) img{
+    max-height:260px;object-fit:cover;border-radius:12px
+  }
   @media(max-width:640px){
     .block-container{padding:1rem}
     .stButton button{width:100%}
-    [data-testid="stExpander"] [data-testid="stHorizontalBlock"]{flex-direction:column;gap:.5rem}
-    [data-testid="stExpander"] [data-testid="column"]{width:100%!important;flex:1 1 100%!important}
-    [data-testid="stExpander"] img{max-height:220px}
+    [data-testid="stVerticalBlockBorderWrapper"]:has(.event-card-marker) [data-testid="stHorizontalBlock"]{flex-direction:column;gap:.5rem}
+    [data-testid="stVerticalBlockBorderWrapper"]:has(.event-card-marker) [data-testid="column"]{width:100%!important;flex:1 1 100%!important}
+    [data-testid="stVerticalBlockBorderWrapper"]:has(.event-card-marker) img{max-height:220px}
   }
 </style>
 """, unsafe_allow_html=True)
-if st.session_state.event_card_mode == "responsive":
-    st.markdown("""
-    <style>@media(min-width:641px){
-      section.main [data-testid="stExpander"] details:not([open]) > :not(summary){display:block!important}
-      section.main [data-testid="stExpander"] summary svg{display:none}
-    }</style>
-    """, unsafe_allow_html=True)
 
 st.title("🗽 NYC Free Events")
 st.caption("Full event details from NYC for FREE, filtered to the day you choose.")
@@ -312,23 +306,14 @@ for column in ("start", "end"):
 st.download_button("Download this list as CSV", download.to_csv(index=False).encode("utf-8"),
                    file_name=f"nyc-free-{chosen_day.isoformat()}.csv", mime="text/csv")
 
-controls_left, controls_right, controls_space = st.columns([1, 1, 4])
-if controls_left.button("Expand all", use_container_width=True):
-    st.session_state.event_card_mode = "expanded"
-    st.rerun()
-if controls_right.button("Collapse all", use_container_width=True):
-    st.session_state.event_card_mode = "collapsed"
-    st.rerun()
-
-expand_cards = st.session_state.event_card_mode == "expanded"
-
 for _, event in filtered.sort_values("start", na_position="last").iterrows():
     when = "Time not listed"
     if event["start"]:
         when = event["start"].strftime("%I:%M %p").lstrip("0")
         if event["end"] and event["end"].date() > event["start"].date():
             when += f" · through {event['end'].strftime('%b %-d') if __import__('os').name != 'nt' else event['end'].strftime('%b %d').replace(' 0', ' ')}"
-    with st.expander(f"{event['title']}  ·  {when}", expanded=expand_cards):
+    with st.container(border=True):
+        st.markdown('<span class="event-card-marker"></span>', unsafe_allow_html=True)
         text_col, image_col = st.columns([5, 2], vertical_alignment="top")
         with text_col:
             st.markdown(f"### {event['title']}")
