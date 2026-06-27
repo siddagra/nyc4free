@@ -243,12 +243,16 @@ st.markdown("""
   .block-container {max-width: 1280px; padding-top: 1.5rem}
   [data-testid="stMain"] [data-testid="stExpander"]{margin-bottom:.8rem}
   [data-testid="stMain"] [data-testid="stExpander"] details{border-radius:14px;border-color:rgba(128,128,128,.35)}
-  [data-testid="stMain"] [data-testid="stExpander"] summary{flex-direction:row-reverse;justify-content:space-between}
+  [data-testid="stMain"] [data-testid="stExpander"] summary{justify-content:space-between}
+  [data-testid="stMain"] [data-testid="stExpander"] summary [data-testid="stExpanderToggleIcon"]{
+    order:2;margin-left:auto;margin-right:0
+  }
   [data-testid="stMain"] [data-testid="stExpander"] summary p{font-weight:700;line-height:1.35}
   [data-testid="stMain"] [data-testid="stExpander"] img{
     max-height:260px;object-fit:cover;border-radius:12px
   }
   .st-key-filter_bar [data-testid="stWidgetLabel"] p{white-space:nowrap}
+  .st-key-filter_bar button{white-space:nowrap}
   @media(min-width:769px){
     [data-testid="stMain"] [data-testid="stExpander"] summary p{font-size:1.2rem}
   }
@@ -285,7 +289,7 @@ st.title("🗽 NYC Free Events")
 st.caption("Full event details from NYC for FREE, filtered to the day you choose.")
 
 with st.container(key="filter_bar"):
-    date_col, refresh_col, search_col, category_col = st.columns([1.25, .7, 3.25, 2], vertical_alignment="bottom")
+    date_col, refresh_col, search_col, category_col = st.columns([1.2, .9, 3.1, 2], vertical_alignment="bottom")
     with date_col:
         chosen_day = st.date_input("📅 Choose date", value=date.today())
     with refresh_col:
@@ -336,7 +340,15 @@ with st.container(key="actions_bar"):
             st.session_state.event_card_mode = "collapsed"
             st.rerun()
 
-expand_cards = st.session_state.event_card_mode == "expanded"
+try:
+    user_agent = st.context.headers.get("User-Agent", "")
+except (AttributeError, RuntimeError):
+    user_agent = ""
+is_phone_or_tablet = bool(re.search(r"Mobile|Android|iPhone|iPad|iPod", user_agent, re.IGNORECASE))
+expand_cards = (
+    st.session_state.event_card_mode == "expanded"
+    or (st.session_state.event_card_mode == "responsive" and not is_phone_or_tablet)
+)
 
 for _, event in filtered.sort_values("start", na_position="last").iterrows():
     when = "Time not listed"
