@@ -255,6 +255,24 @@ st.markdown("""
   .st-key-filter_bar button{white-space:nowrap}
   .mobile-date-label{display:none}
   .st-key-day_nav [data-testid="stMarkdownContainer"] p{text-align:center;font-weight:700;font-size:1.05rem;margin:.45rem 0}
+  .st-key-day_nav [data-testid="stButton"] button{max-width:60px}
+  .st-key-day_nav [data-testid="stColumn"]:nth-child(3) [data-testid="stButton"]{display:flex;justify-content:flex-end}
+  @media(min-width:769px) and (max-width:1100px){
+    .st-key-filter_bar [data-testid="stHorizontalBlock"]{gap:.6rem}
+    .st-key-filter_bar [data-testid="stColumn"]:nth-child(1){flex:1.35 1 0!important;min-width:145px!important}
+    .st-key-filter_bar [data-testid="stColumn"]:nth-child(2){flex:.9 1 0!important;min-width:105px!important}
+    .st-key-filter_bar [data-testid="stColumn"]:nth-child(3){flex:3.7 1 0!important;min-width:260px!important}
+    .st-key-filter_bar [data-testid="stColumn"]:nth-child(4){flex:1.35 1 0!important;min-width:150px!important}
+  }
+  @media(max-width:1100px){
+    .st-key-actions_bar button{white-space:nowrap}
+    .st-key-actions_bar [data-testid="stDownloadButton"] button p,
+    .st-key-actions_bar [data-testid="stColumn"]:nth-child(2) button p,
+    .st-key-actions_bar [data-testid="stColumn"]:nth-child(3) button p{display:none}
+    .st-key-actions_bar [data-testid="stDownloadButton"] button::after{content:'Download CSV'}
+    .st-key-actions_bar [data-testid="stColumn"]:nth-child(2) button::after{content:'Expand'}
+    .st-key-actions_bar [data-testid="stColumn"]:nth-child(3) button::after{content:'Collapse'}
+  }
   @media(min-width:769px){
     [data-testid="stMain"] [data-testid="stExpander"] summary p{font-size:1.2rem}
   }
@@ -280,9 +298,10 @@ st.markdown("""
     .st-key-filter_bar [data-testid="stColumn"]:nth-child(4) [data-testid="stWidgetLabel"]{display:none}
     .st-key-filter_bar [data-testid="stColumn"]:nth-child(1){position:relative}
     .st-key-filter_bar [data-testid="stColumn"]:nth-child(1)::after{
-      content:'📅';position:absolute;left:0;right:0;bottom:.72rem;text-align:center;
+      content:'📅';position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;
       font-size:1rem;line-height:1;pointer-events:none
     }
+    .st-key-filter_bar [data-testid="stColumn"]:nth-child(1) [data-baseweb="input"]{height:40px;min-height:40px}
     .st-key-filter_bar [data-testid="stColumn"]:nth-child(1) input{font-size:0!important;color:transparent!important;padding-left:.35rem;padding-right:.35rem}
     .st-key-filter_bar [data-testid="stColumn"]:nth-child(2) button p{display:none}
     .st-key-filter_bar [data-testid="stColumn"]:nth-child(4){position:relative}
@@ -340,7 +359,7 @@ with st.container(key="day_nav"):
             st.rerun()
 
 with st.container(key="filter_bar"):
-    date_col, refresh_col, search_col, category_col = st.columns([.85, .8, 4.6, 1.5], vertical_alignment="bottom")
+    date_col, refresh_col, search_col, category_col = st.columns([1.2, .9, 4.2, 1.4], vertical_alignment="bottom")
     with date_col:
         chosen_day = st.date_input("📅 Date", key="chosen_date")
     with refresh_col:
